@@ -3,6 +3,12 @@ require 'csvigo'
 require 'image'
 require 'nn'
 
+local cuda_flag = false
+
+if cuda_flag then
+    require 'cunn'
+end
+
 -- Load training set
 
 local id_train = csvigo.load({path="id_train.csv", mode="query"})
@@ -13,8 +19,20 @@ print("ntrain =", ntrain)
 trainset.data = {}
 for k,v in ipairs(trainset.Id) do
     trainset.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
-    trainset.label[k] = tonumber(trainset.label[k])
+    local label = tonumber(trainset.label[k])
+    trainset.label[k] = torch.Tensor(1):fill(label)
 end
+
+merge_data = nn.Sequential()
+            :add(nn.JoinTable(1))
+            :add(nn.View(-1, 3, 32, 32))
+
+merge_label = nn.Sequential()
+                :add(nn.JoinTable(1))
+                :add(nn.View(-1, 1))
+
+trainset.data  = merge_data:forward(trainset.data)
+trainset.label  = merge_label:forward(trainset.label)
 
 print("Finished loading training set")
 
@@ -30,12 +48,6 @@ setmetatable(trainset,
 function trainset:size()
     return self.data:size(1)
 end
-
-merge = nn.Sequential()
-            :add(nn.JoinTable(1))
-            :add(nn.View(-1, 3, 32, 32))
-
-trainset.data  = merge:forward(trainset.data)
 
 -- Normalize
 
@@ -71,6 +83,15 @@ net:add(nn.LogSoftMax()) -- converts the output to a log-probability. Useful for
 
 criterion = nn.ClassNLLCriterion()
 
+-- Using CUDA
+
+if cuda_flag then
+    net = net:cuda()
+    criterion = criterion:cuda()
+    trainset.data = trainset.data:cuda()
+    trainset.label = trainset.label:cuda()
+end
+
 -- Train the neural network
 
 print("Training")
@@ -89,25 +110,50 @@ print("ntest =", ntest)
 testset.data = {}
 for k,v in ipairs(testset.Id) do
     testset.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
-    testset.label[k] = tonumber(testset.label[k])
+    --local label = tonumber(testset.label[k])
+    --testset.label[k] = torch.Tensor(1):fill(label)
 end
+
+testset.data = merge_data:forward(testset.data)
 
 print("Finished loading test set")
 
-testset.data = merge:forward(testset.data)
+-- Using CUDA
+
+if cuda_flag then
+    testset.data = testset.data:cuda()
+end
 
 -- Test the network
 
 print("Testing")
 
 for i = 1,3 do
-  testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-  testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
+    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
+    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
 end
 
 classes = {"North-South", "East-West", "Flat roof" , "Other"}
 
-predicted = net:forward(testset.data[100])
+rtest = math.random(ntest)
+predicted = net:forward(testset.data[rtest])
 predicted:exp() -- convert log-probability to probability
-print("Prediction : ", classes[predicted])
-image.display(testset.data[100])
+
+for i = 1,predicted:size(1) do
+    print(classes[i], predicted[i])
+end
+
+image.display(testset.data[rtest])
+
+local filename = 'submission.csv'
+local file = assert(io.open(filename, "w"))
+file:write("Id,label\n")
+
+for i=1,testset.data:size(1) do
+    local prediction = net:forward(testset.data[i])
+    local confidences, indices = torch.sort(prediction, true) -- sort in descending order
+
+    file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
+end
+
+file:close()
