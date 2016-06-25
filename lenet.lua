@@ -47,6 +47,13 @@ local function Normalize(trainset)
 end
 
 local function TrainNet(trainset)
+    setmetatable(trainset,
+        {__index = function(t,i) return {t.data[i], t.label[i]} end}
+    );
+    function trainset:size()
+        return self.data:size(1)
+    end
+
     -- Create network
     net = nn.Sequential()
     net:add(nn.SpatialConvolution(3,6,5,5)) -- 1 input image channel, 6 output channels, 5x5 convolution kernel
@@ -153,13 +160,6 @@ local function KFoldedCV(trainset, K)
             end
         end
 
-        setmetatable(train,
-            {__index = function(t,i) return {t.data[i], t.label[i]} end}
-        );
-        function train:size()
-            return self.data:size(1)
-        end
-
         mean, std = Normalize(train)
         net = TrainNet(train)
 
@@ -191,7 +191,9 @@ trainset = LoadDataset("id_train.csv")
 local net
 local mean
 local std
-net, mean, std = KFoldedCV(trainset, 4)
+--net, mean, std = KFoldedCV(trainset, 4)
+mean, std = Normalize(trainset)
+net = TrainNet(trainset)
 
 -- Load test set
 
