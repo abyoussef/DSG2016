@@ -2,6 +2,7 @@ require 'torch'
 require 'image'
 require 'nn'
 dsg_utils = require 'dsg_utils'
+dsg_nets = require 'dsg_nets'
 
 local cuda_flag = false
 
@@ -20,9 +21,9 @@ trainset = dsg_utils.LoadAndAugmentDataset("id_train.csv")
 local net
 local mean
 local std
---net, mean, std = dsg_utils.KFoldedCV(trainset, 4, cuda_flag)
+--net, mean, std = dsg_utils.KFoldedCV(trainset, 4, dsg_nets.Lenet, cuda_flag)
 mean, std = dsg_utils.Normalize(trainset)
-net = dsg_utils.TrainNet(trainset, cuda_flag)
+net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, cuda_flag)
 
 -- Load test set
 
