@@ -10,7 +10,7 @@ if cuda_flag then
 end
 
 -- Load training set
-trainset = dsg_utils.LoadDataset("id_train.csv")
+trainset = dsg_utils.LoadAndAugmentDataset("id_train.csv")
 
 --for i = 1,math.min(ntrain,5) do
 --    local pos = math.random(ntrain)

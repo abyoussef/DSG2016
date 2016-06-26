@@ -27,6 +27,39 @@ function dsg_utils.LoadDataset(filename)
     return dataset
 end
 
+function dsg_utils.LoadAndAugmentDataset(filename)
+    print("Loading dataset")
+    local parsed = csvigo.load({path=filename, mode="query"})
+    local dataset = parsed('all')
+    local ndata = #dataset.Id
+    local ret = {}
+    ret.data = torch.Tensor(4 * ndata, 3, 32, 32)
+    ret.label = torch.IntTensor(4 * ndata)
+
+    for k,v in ipairs(dataset.Id) do
+        local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
+        local i2 = image.hflip(i1)
+        local i3 = image.vflip(i1)
+        local i4 = image.vflip(i2)
+        local label1 = tonumber(dataset.label[k])
+
+        ret.data[4 * k - 3] = i1
+        ret.label[4 * k - 3] = torch.Tensor(1):fill(label1)
+
+        ret.data[4 * k - 2] = i2
+        ret.label[4 * k - 2] = torch.Tensor(1):fill(label1)
+
+        ret.data[4 * k - 1] = i3
+        ret.label[4 * k - 1] = torch.Tensor(1):fill(label1)
+
+        ret.data[4 * k] = i4
+        ret.label[4 * k] = torch.Tensor(1):fill(label1)
+    end
+
+    print("Finished loading dataset")
+    return ret
+end
+
 function dsg_utils.Normalize(trainset)
     mean = {}
     stdv = {}
@@ -81,7 +114,7 @@ function dsg_utils.TrainNet(trainset, cuda_flag)
     -- Train network
     trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
-    trainer.maxIteration = 10
+    trainer.maxIteration = 15
     trainer:train(trainset)
 
     return net
