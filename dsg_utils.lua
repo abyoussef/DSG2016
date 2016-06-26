@@ -33,8 +33,8 @@ function dsg_utils.LoadAndAugmentDataset(filename)
     local dataset = parsed('all')
     local ndata = #dataset.Id
     local ret = {}
-    ret.data = torch.Tensor(4 * ndata, 3, 32, 32)
-    ret.label = torch.IntTensor(4 * ndata)
+    ret.data = torch.Tensor(8 * ndata, 3, 32, 32)
+    ret.label = torch.IntTensor(8 * ndata)
 
     for k,v in ipairs(dataset.Id) do
         local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
@@ -42,18 +42,39 @@ function dsg_utils.LoadAndAugmentDataset(filename)
         local i3 = image.vflip(i1)
         local i4 = image.vflip(i2)
         local label1 = tonumber(dataset.label[k])
+        local label2
 
-        ret.data[4 * k - 3] = i1
-        ret.label[4 * k - 3] = torch.Tensor(1):fill(label1)
+        ret.data[8 * k - 7] = i1
+        ret.label[8 * k - 7] = label1
 
-        ret.data[4 * k - 2] = i2
-        ret.label[4 * k - 2] = torch.Tensor(1):fill(label1)
+        ret.data[8 * k - 6] = i2
+        ret.label[8 * k - 6] = label1
 
-        ret.data[4 * k - 1] = i3
-        ret.label[4 * k - 1] = torch.Tensor(1):fill(label1)
+        ret.data[8 * k - 5] = i3
+        ret.label[8 * k - 5] = label1
 
-        ret.data[4 * k] = i4
-        ret.label[4 * k] = torch.Tensor(1):fill(label1)
+        ret.data[8 * k - 4] = i4
+        ret.label[8 * k - 4] = label1
+
+        if label1 == 1 then
+            label2 = 2
+        elseif label1 == 2 then
+            label2 = 1
+        else
+            label2 = label1
+        end
+
+        ret.data[8 * k - 3] = i1:transpose(2,3)
+        ret.label[8 * k - 3] = label2
+
+        ret.data[8 * k - 2] = i2:transpose(2,3)
+        ret.label[8 * k - 2] = label2
+
+        ret.data[8 * k - 1] = i3:transpose(2,3)
+        ret.label[8 * k - 1] = label2
+
+        ret.data[8 * k] = i4:transpose(2,3)
+        ret.label[8 * k] = label2
     end
 
     print("Finished loading dataset")
