@@ -62,4 +62,12 @@ function dsg_nets.VggBNDrop()
     return vgg
 end
 
+function dsg_nets.MSRInit(net)
+    for k,v in pairs(net:findModules('nn.SpatialConvolution')) do
+        local n = v.kW * v.kH * v.nOutputPlane
+        v.weight:normal(0,math.sqrt(2 / n))
+        v.bias:zero()
+    end
+end
+
 return dsg_nets
