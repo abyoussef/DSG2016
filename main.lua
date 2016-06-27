@@ -26,14 +26,14 @@ local std
 mean, std = dsg_utils.Normalize(trainset)
 net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, cuda_flag)
 
--- Load test set
-
-testset = dsg_utils.LoadDataset("sample_submission4.csv")
-local ntest = #testset.Id
-
 -- Test the network
 
 if test then
+	-- Load test set
+
+	testset = dsg_utils.LoadDataset("sample_submission4.csv")
+	local ntest = #testset.Id
+
 	print("Testing")
 
 	for i = 1,3 do
