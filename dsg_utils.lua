@@ -4,16 +4,17 @@ require 'image'
 require 'nn'
 
 local dsg_utils = {}
+local size = 32
 
 function dsg_utils.LoadDataset(filename)
     print("Loading dataset")
     local id_train = csvigo.load({path=filename, mode="query"})
     local dataset = id_train('all')
     local ndata = #dataset.Id
-    dataset.data = torch.Tensor(ndata, 3, 32, 32)
+    dataset.data = torch.Tensor(ndata, 3, size, size)
 
     for k,v in ipairs(dataset.Id) do
-        dataset.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
+        dataset.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
         local label = tonumber(dataset.label[k])
         dataset.label[k] = torch.Tensor(1):fill(label)
     end
@@ -33,11 +34,11 @@ function dsg_utils.LoadAndAugmentDataset(filename)
     local dataset = parsed('all')
     local ndata = #dataset.Id
     local ret = {}
-    ret.data = torch.Tensor(8 * ndata, 3, 32, 32)
+    ret.data = torch.Tensor(8 * ndata, 3, size, size)
     ret.label = torch.IntTensor(8 * ndata)
 
     for k,v in ipairs(dataset.Id) do
-        local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), 32, 32)
+        local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
         local i2 = image.hflip(i1)
         local i3 = image.vflip(i1)
         local i4 = image.vflip(i2)
@@ -178,10 +179,10 @@ function dsg_utils.KFoldedCV(trainset, K, fnet, cuda_flag)
         --print("nTrain = " .. nTrain .. ", nValid = " .. nValid)
 
         local train = {}
-        train.data = torch.Tensor(nTrain, 3, 32, 32)
+        train.data = torch.Tensor(nTrain, 3, size, size)
         train.label = torch.IntTensor(nTrain)
         local valid = {}
-        valid.data = torch.Tensor(nValid, 3, 32, 32)
+        valid.data = torch.Tensor(nValid, 3, size, size)
         valid.label = torch.IntTensor(nValid)
 
         local posTrain = 0
