@@ -34,6 +34,13 @@ if test then
 	testset = dsg_utils.LoadDataset("sample_submission4.csv")
 	local ntest = #testset.Id
 
+    -- Using CUDA
+
+    if cuda_flag then
+        testset.data = testset.data:cuda()
+        testset.label = testset.label:cuda()
+    end
+
 	print("Testing")
 
 	for i = 1,3 do

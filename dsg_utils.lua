@@ -135,6 +135,7 @@ local function TestNet(net, testset, cuda_flag)
 
     if cuda_flag then
         testset.data = testset.data:cuda()
+        testset.label = testset.label:cuda()
     end
 
     local correct = 0
