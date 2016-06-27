@@ -5,6 +5,7 @@ dsg_utils = require 'dsg_utils'
 dsg_nets = require 'dsg_nets'
 
 local cuda_flag = false
+local test = false
 
 if cuda_flag then
     require 'cunn'
@@ -32,32 +33,35 @@ local ntest = #testset.Id
 
 -- Test the network
 
-print("Testing")
+if test then
+	print("Testing")
 
-for i = 1,3 do
-    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
+	for i = 1,3 do
+	    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
+	    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
+	end
+
+	--classes = {"North-South", "East-West", "Flat roof" , "Other"}
+
+	--rtest = math.random(ntest)
+	--predicted = net:forward(testset.data[rtest])
+	--predicted:exp() -- convert log-probability to probability
+	--for i = 1,predicted:size(1) do
+	--    print(classes[i], predicted[i])
+	--end
+	--image.display(testset.data[rtest])
+
+	local filename = 'submission.csv'
+	local file = assert(io.open(filename, "w"))
+	file:write("Id,label\n")
+
+	for i=1,ntest do
+	    local prediction = net:forward(testset.data[i])
+	    local confidences, indices = torch.sort(prediction, true) -- sort in descending order
+
+	    file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
+	end
+
+	file:close()
+	print("Testing finished")
 end
-
---classes = {"North-South", "East-West", "Flat roof" , "Other"}
-
---rtest = math.random(ntest)
---predicted = net:forward(testset.data[rtest])
---predicted:exp() -- convert log-probability to probability
---for i = 1,predicted:size(1) do
---    print(classes[i], predicted[i])
---end
---image.display(testset.data[rtest])
-
-local filename = 'submission.csv'
-local file = assert(io.open(filename, "w"))
-file:write("Id,label\n")
-
-for i=1,ntest do
-    local prediction = net:forward(testset.data[i])
-    local confidences, indices = torch.sort(prediction, true) -- sort in descending order
-
-    file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
-end
-
-file:close()
