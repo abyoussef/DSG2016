@@ -62,11 +62,53 @@ function dsg_nets.VggBNDrop()
     return vgg
 end
 
-function dsg_nets.MSRInit(net)
+local function w_init_heuristic(fan_in, fan_out)
+    return math.sqrt(1 / (3 * fan_in))
+end
+
+local function w_init_xavier(fan_in, fan_out)
+    return math.sqrt(2 / (fan_in + fan.out))
+end
+
+local function w_init_xavier_caffe(fan_in, fan_out)
+    return math.sqrt(1 / fan_in)
+end
+
+local function w_init_kaiming(fan_in, fan_out)
+    return math.sqrt(4 / (fan_in + fan_out))
+end
+
+-- http://arxiv.org/pdf/1502.01852v1.pdf
+local function w_init_msr(fan_in, fan_out)
+    return math.sqrt(2 / fan_out)
+end
+
+-- https://github.com/e-lab/torch-toolbox/tree/master/Weight-init
+function dsg_nets.w_init(net, arg)
+    local method = nInputPlane
+    if arg == 'heuristic' then
+        method = w_init_heuristic
+    elseif arg == 'xavier' then
+        method = w_init_xavier
+    elseif arg == 'xavier_caffe' then
+        method = w_init_xavier_caffe
+    elseif arg =='kaiming' then
+        method = w_init_kaiming
+    elseif arg == 'msr' then
+        method = w_init_msr
+    else
+        assert(false)
+    end
+
     for k,v in pairs(net:findModules('nn.SpatialConvolution')) do
+        local fan_in = v.kW * v.kH * v.nInputPlane
+        local fan_out = v.kW * v.kH * v.nOutputPlane
         local n = v.kW * v.kH * v.nOutputPlane
-        v.weight:normal(0,math.sqrt(2 / n))
-        v.bias:zero()
+        v:reset(method(fan_in, fan_out))
+
+        if v.bias then
+            v.bias:zero()
+        end
     end
 end
 

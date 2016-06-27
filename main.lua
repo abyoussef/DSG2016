@@ -24,7 +24,7 @@ local mean
 local std
 --net, mean, std = dsg_utils.KFoldedCV(trainset, 4, dsg_nets.Lenet, cuda_flag)
 mean, std = dsg_utils.Normalize(trainset)
-net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, cuda_flag)
+net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, 'msr', cuda_flag)
 
 -- Test the network
 

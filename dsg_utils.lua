@@ -2,6 +2,7 @@ require 'torch'
 require 'csvigo'
 require 'image'
 require 'nn'
+dsg_nets = require 'dsg_nets'
 
 local dsg_utils = {}
 local size = 32
@@ -97,7 +98,7 @@ function dsg_utils.Normalize(trainset)
     return mean,stdv
 end
 
-function dsg_utils.TrainNet(trainset, fnet, cuda_flag)
+function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
     setmetatable(trainset,
         {__index = function(t,i) return {t.data[i], t.label[i]} end}
     );
@@ -107,6 +108,9 @@ function dsg_utils.TrainNet(trainset, fnet, cuda_flag)
 
     -- Create network
     net = fnet()
+    if w_init_name then
+        dsg_nets.w_init(net, w_init_name)
+    end
 
     -- Loss function
     criterion = nn.ClassNLLCriterion()
