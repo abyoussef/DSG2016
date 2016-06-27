@@ -5,11 +5,6 @@ dsg_utils = require 'dsg_utils'
 dsg_nets = require 'dsg_nets'
 
 local cuda_flag = false
-local test = false
-
-if cuda_flag then
-    require 'cunn'
-end
 
 -- Load training set
 trainset = dsg_utils.LoadAndAugmentDataset("id_train.csv")
@@ -23,52 +18,9 @@ local net
 local mean
 local std
 --net, mean, std = dsg_utils.KFoldedCV(trainset, 4, dsg_nets.Lenet, cuda_flag)
-mean, std = dsg_utils.Normalize(trainset)
-net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, 'msr', cuda_flag)
+mean, stdv = dsg_utils.Normalize(trainset)
+torch.save('model.mean', mean)
+torch.save('model.stdv', stdv)
 
--- Test the network
-
-if test then
-	-- Load test set
-
-	testset = dsg_utils.LoadDataset("sample_submission4.csv")
-	local ntest = #testset.Id
-
-    -- Using CUDA
-
-    if cuda_flag then
-        testset.data = testset.data:cuda()
-        testset.label = testset.label:cuda()
-    end
-
-	print("Testing")
-
-	for i = 1,3 do
-	    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-	    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
-	end
-
-	--classes = {"North-South", "East-West", "Flat roof" , "Other"}
-
-	--rtest = math.random(ntest)
-	--predicted = net:forward(testset.data[rtest])
-	--predicted:exp() -- convert log-probability to probability
-	--for i = 1,predicted:size(1) do
-	--    print(classes[i], predicted[i])
-	--end
-	--image.display(testset.data[rtest])
-
-	local filename = 'submission.csv'
-	local file = assert(io.open(filename, "w"))
-	file:write("Id,label\n")
-
-	for i=1,ntest do
-	    local prediction = net:forward(testset.data[i])
-	    local confidences, indices = torch.sort(prediction, true) -- sort in descending order
-
-	    file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
-	end
-
-	file:close()
-	print("Testing finished")
-end
+net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, 'heuristic', cuda_flag)
+torch.save('model.net', net)

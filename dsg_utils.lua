@@ -117,6 +117,7 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
 
     -- Using CUDA
     if cuda_flag then
+        require 'cunn'
         net = net:cuda()
         criterion = criterion:cuda()
         trainset.data = trainset.data:cuda()
