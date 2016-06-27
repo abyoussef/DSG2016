@@ -67,7 +67,7 @@ local function w_init_heuristic(fan_in, fan_out)
 end
 
 local function w_init_xavier(fan_in, fan_out)
-    return math.sqrt(2 / (fan_in + fan.out))
+    return math.sqrt(2 / (fan_in + fan_out))
 end
 
 local function w_init_xavier_caffe(fan_in, fan_out)
