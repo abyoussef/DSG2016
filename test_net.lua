@@ -14,6 +14,7 @@ local ntest = #testset.Id
 -- Using CUDA
 if cuda_flag then
     require 'cunn'
+    net = net:cuda()
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
 end
