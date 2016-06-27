@@ -138,15 +138,25 @@ local function TestNet(net, testset, cuda_flag)
     end
 
     local correct = 0
+    local correctByClass = {0,0,0,0}
+    local totalByClass = {0,0,0,0}
     for i=1,nTest do
         local prediction = net:forward(testset.data[i])
         local confidences, indices = torch.sort(prediction, true) -- sort in descending order
         if indices[1] == testset.label[i] then
             correct = correct + 1
+            correctByClass[ testset.label[i] ] = correctByClass[ testset.label[i] ] + 1
         end
+        totalByClass[ testset.label[i] ] = totalByClass[ testset.label[i] ] + 1
     end
+
     local percentage = correct * 100.0 / nTest
     print(correct .. "/" .. nTest .. " " .. percentage)
+    for i=1,4 do
+        local percentagei = correctByClass[i] * 100.0 / totalByClass[i]
+        print("class " .. i .. " : " .. correctByClass[i] .. "/" .. totalByClass[i] .. " " .. percentagei)
+    end
+
     return percentage
 end
 
