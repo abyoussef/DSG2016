@@ -25,7 +25,7 @@ stdv = torch.load(models[1] .. '.stdv')
 -- Load test set
 --dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
 testset = torch.load("dsg_test.t7")
-local ntest = #testset.label
+local ntest = testset.label:size(1)
 
 -- Using CUDA
 if cuda_flag then
@@ -49,7 +49,7 @@ file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 for i=1,ntest do
     local prediction = torch.Tensor(4):zero()
     for k,v in ipairs(nets) do
-        local net_prediction = net:forward(testset.data[i])
+        local net_prediction = nets[k]:forward(testset.data[i])
         net_prediction:exp()
         prediction:add(net_prediction)
     end
