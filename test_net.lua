@@ -1,22 +1,31 @@
 dsg_utils = require 'dsg_utils'
 
-local cuda_flag = false
-local model_name = 'model'
+cmd = torch.CmdLine()
+cmd:addTime()
+cmd:option('-modelName', 'model', 'name of the model')
+cmd:option('-submissionName', 'submission', 'name of the submission file')
+cmd:option('-preprocess', false, 'if true preprocess data')
+cmd:option('-cuda', false, 'if true train with minibatches')
+
+opt = cmd:parse(arg or {})
+
 local submission_name = 'submission'
 
 -- Load model
-net = torch.load(model_name .. '.net')
-mean = torch.load(model_name .. '.mean')
-stdv = torch.load(model_name .. '.stdv')
+net = torch.load(opt.modelName .. '.net')
+mean = torch.load(opt.modelName .. '.mean')
+stdv = torch.load(opt.modelName .. '.stdv')
 net:evaluate()
 
 -- Load test set
---dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
+if opt.preprocess then
+    dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
+end
 testset = torch.load("dsg_test.t7")
-local ntest = #testset.label
+local ntest = testset.label:size(1)
 
 -- Using CUDA
-if cuda_flag then
+if opt.cuda then
     require 'cunn'
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
@@ -39,8 +48,8 @@ end
 --end
 --image.display(testset.data[rtest])
 
-local file = assert(io.open(submission_name .. '.csv', "w"))
-local file_detailed = assert(io.open(submission_name .. '_detailed.csv', "w"))
+local file = assert(io.open(opt.submissionName .. '.csv', "w"))
+local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))
 file:write("Id,label\n")
 file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 
@@ -59,3 +68,6 @@ end
 
 file:close()
 print("Testing finished")
+
+-- create log file
+cmd:log('log_test_net', opt)
