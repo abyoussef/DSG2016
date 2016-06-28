@@ -7,29 +7,26 @@ dsg_nets = require 'dsg_nets'
 local dsg_utils = {}
 local size = 32
 
-function dsg_utils.LoadDataset(filename)
+function dsg_utils.PreprocessDataset(filename)
     print("Loading dataset")
-    local id_train = csvigo.load({path=filename, mode="query"})
-    local dataset = id_train('all')
+    local parsed = csvigo.load({path=filename, mode="query"})
+    local dataset = parsed('all')
     local ndata = #dataset.Id
-    dataset.data = torch.Tensor(ndata, 3, size, size)
+    local ret = {}
+    ret.data = torch.Tensor(ndata, 3, size, size)
+    ret.label = torch.IntTensor(ndata)
 
     for k,v in ipairs(dataset.Id) do
-        dataset.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
+        ret.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
         local label = tonumber(dataset.label[k])
-        dataset.label[k] = torch.Tensor(1):fill(label)
+        ret.label[k] = label
     end
 
-    merge_label = nn.Sequential()
-                    :add(nn.JoinTable(1))
-                    :add(nn.View(-1, 1))
-
-    dataset.label = merge_label:forward(dataset.label)
     print("Finished loading dataset")
-    return dataset
+    torch.save("dsg.t7", ret)
 end
 
-function dsg_utils.LoadAndAugmentDataset(filename)
+function dsg_utils.PreprocessAndAugmentDataset(filename)
     print("Loading dataset")
     local parsed = csvigo.load({path=filename, mode="query"})
     local dataset = parsed('all')
@@ -80,7 +77,7 @@ function dsg_utils.LoadAndAugmentDataset(filename)
     end
 
     print("Finished loading dataset")
-    return ret
+    torch.save("dsg_augmented.t7", ret)
 end
 
 function dsg_utils.Normalize(trainset)
