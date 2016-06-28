@@ -17,11 +17,13 @@ function dsg_utils.PreprocessDataset(filename, output)
     local ret = {}
     ret.data = torch.Tensor(ndata, 3, size, size)
     ret.label = torch.IntTensor(ndata)
+    ret.Id = torch.IntTensor(ndata)
 
     for k,v in ipairs(dataset.Id) do
         ret.data[k] = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
         local label = tonumber(dataset.label[k])
         ret.label[k] = label
+        ret.Id[k] = tonumber(dataset.Id[k])
     end
 
     print("Finished loading dataset")
