@@ -3,23 +3,24 @@ require 'torch'
 dsg_utils = require 'dsg_utils'
 
 local cuda_flag = false
+local models = {'model1', 'model2'}
+local submission_name = 'submission'
 
-model_files = {'model1.net', 'model2.net'}
-nmodels = #model_files
+nmodels = #models
 
 -- Load models
 nets = {}
 
-for k,v in ipairs(model_files) do
-    net = torch.load(v)
+for k,v in ipairs(models) do
+    net = torch.load(v .. '.net')
     if cuda_flag then
         net:cuda()
     end
     table.insert(nets, net)
 end
 
-mean = torch.load('model.mean')
-stdv = torch.load('model.stdv')
+mean = torch.load(models[1] .. '.mean')
+stdv = torch.load(models[1] .. '.stdv')
 
 -- Load test set
 testset = dsg_utils.LoadDataset("sample_submission4.csv")
@@ -39,20 +40,28 @@ for i = 1,3 do
     testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
 end
 
-local filename = 'submission.csv'
-local file = assert(io.open(filename, "w"))
+local file = assert(io.open(submission_name .. '.csv', "w"))
+local file_detailed = assert(io.open(submission_name .. '_detailed.csv', "w"))
 file:write("Id,label\n")
+file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 
 for i=1,ntest do
-    local prediction = 0
+    local prediction = torch.Tensor(4):zero()
     for k,v in ipairs(nets) do
-        prediction = prediction + net:forward(testset.data[i])
+        local net_prediction = net:forward(testset.data[i])
+        net_prediction:exp()
+        prediction:add(net_prediction)
     end
-    prediction = prediction / nmodels
+    prediction:div(nmodels)
 
     local confidences, indices = torch.sort(prediction, true) -- sort in descending order
 
     file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
+    file_detailed:write(testset.Id[i] .. "," .. indices[1])
+    for i = 1,4 do
+        file_detailed:write("," .. prediction[i])
+    end
+    file_detailed:write("\n")
 end
 
 file:close()

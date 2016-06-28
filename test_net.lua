@@ -1,11 +1,13 @@
 dsg_utils = require 'dsg_utils'
 
 local cuda_flag = false
+local model_name = 'model'
+local submission_name = 'submission'
 
 -- Load model
-net = torch.load('model.net')
-mean = torch.load('model.mean')
-stdv = torch.load('model.stdv')
+net = torch.load(model_name .. '.net')
+mean = torch.load(model_name .. '.mean')
+stdv = torch.load(model_name .. '.stdv')
 
 -- Load test set
 testset = dsg_utils.LoadDataset("sample_submission4.csv")
@@ -36,15 +38,22 @@ end
 --end
 --image.display(testset.data[rtest])
 
-local filename = 'submission.csv'
-local file = assert(io.open(filename, "w"))
+local file = assert(io.open(submission_name .. '.csv', "w"))
+local file_detailed = assert(io.open(submission_name .. '_detailed.csv', "w"))
 file:write("Id,label\n")
+file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 
 for i=1,ntest do
     local prediction = net:forward(testset.data[i])
+    prediction:exp()
     local confidences, indices = torch.sort(prediction, true) -- sort in descending order
 
     file:write(testset.Id[i] .. "," .. indices[1] .. "\n")
+    file_detailed:write(testset.Id[i] .. "," .. indices[1])
+    for i = 1,4 do
+        file_detailed:write("," .. prediction[i])
+    end
+    file_detailed:write("\n")
 end
 
 file:close()
