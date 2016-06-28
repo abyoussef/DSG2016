@@ -26,7 +26,7 @@ function dsg_utils.PreprocessDataset(filename)
     torch.save("dsg.t7", ret)
 end
 
-function dsg_utils.PreprocessAndAugmentDataset(filename)
+function dsg_utils.PreprocessAndAugmentDataset(filename, format)
     print("Loading dataset")
     local parsed = csvigo.load({path=filename, mode="query"})
     local dataset = parsed('all')
@@ -37,6 +37,11 @@ function dsg_utils.PreprocessAndAugmentDataset(filename)
 
     for k,v in ipairs(dataset.Id) do
         local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
+
+        if format == 'yuv' then
+            i1 = image.rgb2yuv(i1)
+        end
+
         local i2 = image.hflip(i1)
         local i3 = image.vflip(i1)
         local i4 = image.vflip(i2)
