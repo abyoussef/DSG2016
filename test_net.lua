@@ -19,7 +19,7 @@ net:evaluate()
 
 -- Load test set
 if opt.preprocess then
-    dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
+    dsg_utils.PreprocessDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
 end
 testset = torch.load("dsg_test.t7")
 local ntest = testset.label:size(1)
