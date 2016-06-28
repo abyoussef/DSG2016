@@ -2,6 +2,8 @@ require 'torch'
 require 'csvigo'
 require 'image'
 require 'nn'
+require 'optim'
+require 'xlua'
 dsg_nets = require 'dsg_nets'
 
 local dsg_utils = {}
@@ -132,6 +134,76 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
     trainer.learningRate = 0.001
     trainer.maxIteration = 15
     trainer:train(trainset)
+
+    return net
+end
+
+-- based on: https://github.com/szagoruyko/cifar.torch/blob/master/train.lua
+function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, batch_size, model_name, cuda_flag)
+    -- Create network
+    net = fnet()
+    if w_init_name then
+        dsg_nets.w_init(net, w_init_name)
+    end
+    net:training()
+    parameters, gradParameters = net:getParameters()
+
+    -- Loss function
+    criterion = nn.ClassNLLCriterion()
+
+    -- Minibatch targets
+    local targets = torch.FloatTensor(batch_size)
+
+    -- Using CUDA
+    if cuda_flag then
+        require 'cunn'
+        net = net:cuda()
+        criterion = criterion:cuda()
+        trainset.data = trainset.data:cuda()
+        trainset.label = trainset.label:cuda()
+        targets = targets:cuda()
+    end
+
+    local n_train = trainset.label:size(1)
+    optimState = {
+      learningRate = 1,
+      weightDecay = 0.0005,
+      momentum = 0.9,
+      learningRateDecay = 1e-7,
+    }
+
+    for epoch=1,n_epochs do
+        print("epoch #" .. epoch .. " [batch_size = " .. batch_size .. "]")
+        if epoch % 25 == 0 then optimState.learningRate = optimState.learningRate / 2 end
+
+        local indices = torch.randperm(n_train):long():split(batch_size)
+        -- remove last element so that all the batches have equal size
+        indices[#indices] = nil
+
+        for k,v in ipairs(indices) do
+            xlua.progress(k, #indices)
+            local inputs = trainset.data:index(1,v)
+            targets:copy(trainset.label:index(1,v))
+
+            local feval = function(x)
+              if x ~= parameters then parameters:copy(x) end
+              gradParameters:zero()
+
+              local outputs = net:forward(inputs)
+              local f = criterion:forward(outputs, targets)
+              local df_do = criterion:backward(outputs, targets)
+              net:backward(inputs, df_do)
+
+              return f, gradParameters
+            end
+
+            optim.sgd(feval, parameters, optimState)
+        end
+
+        if epoch % 1 == 0 then
+            torch.save(model_name .. '_epoch_' .. epoch .. '.net', net)
+        end
+    end
 
     return net
 end

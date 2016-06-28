@@ -16,5 +16,6 @@ mean, stdv = dsg_utils.Normalize(trainset)
 torch.save(model_name .. '.mean', mean)
 torch.save(model_name .. '.stdv', stdv)
 
-net = dsg_utils.TrainNet(trainset, dsg_nets.VggBNDrop, 'msr', cuda_flag)
+net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, 'heuristic', cuda_flag)
+-- net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, 'msr', 50, 128, model_name, cuda_flag)
 torch.save(model_name .. '.net', net)
