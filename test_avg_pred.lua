@@ -23,8 +23,9 @@ mean = torch.load(models[1] .. '.mean')
 stdv = torch.load(models[1] .. '.stdv')
 
 -- Load test set
-testset = dsg_utils.LoadDataset("sample_submission4.csv")
-local ntest = #testset.Id
+--dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
+testset = torch.load("dsg_test.t7")
+local ntest = #testset.label
 
 -- Using CUDA
 if cuda_flag then

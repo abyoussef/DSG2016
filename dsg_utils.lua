@@ -7,7 +7,7 @@ dsg_nets = require 'dsg_nets'
 local dsg_utils = {}
 local size = 32
 
-function dsg_utils.PreprocessDataset(filename)
+function dsg_utils.PreprocessDataset(filename, output)
     print("Loading dataset")
     local parsed = csvigo.load({path=filename, mode="query"})
     local dataset = parsed('all')
@@ -23,10 +23,10 @@ function dsg_utils.PreprocessDataset(filename)
     end
 
     print("Finished loading dataset")
-    torch.save("dsg.t7", ret)
+    torch.save(output, ret)
 end
 
-function dsg_utils.PreprocessAndAugmentDataset(filename, format)
+function dsg_utils.PreprocessAndAugmentDataset(filename, output, format)
     print("Loading dataset")
     local parsed = csvigo.load({path=filename, mode="query"})
     local dataset = parsed('all')
@@ -82,7 +82,7 @@ function dsg_utils.PreprocessAndAugmentDataset(filename, format)
     end
 
     print("Finished loading dataset")
-    torch.save("dsg_augmented.t7", ret)
+    torch.save(output, ret)
 end
 
 function dsg_utils.Normalize(trainset)
@@ -113,6 +113,7 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
     if w_init_name then
         dsg_nets.w_init(net, w_init_name)
     end
+    net:training()
 
     -- Loss function
     criterion = nn.ClassNLLCriterion()

@@ -8,15 +8,16 @@ local submission_name = 'submission'
 net = torch.load(model_name .. '.net')
 mean = torch.load(model_name .. '.mean')
 stdv = torch.load(model_name .. '.stdv')
+net:evaluate()
 
 -- Load test set
-testset = dsg_utils.LoadDataset("sample_submission4.csv")
-local ntest = #testset.Id
+--dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
+testset = torch.load("dsg_test.t7")
+local ntest = #testset.label
 
 -- Using CUDA
 if cuda_flag then
     require 'cunn'
-    net = net:cuda()
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
 end
