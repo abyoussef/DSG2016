@@ -140,11 +140,11 @@ local function TestNet(net, testset, cuda_flag)
     local nTest = testset.data:size(1)
 
     -- Using CUDA
-
     if cuda_flag then
         testset.data = testset.data:cuda()
         testset.label = testset.label:cuda()
     end
+    net:evaluate()
 
     local correct = 0
     local correctByClass = {0,0,0,0}
