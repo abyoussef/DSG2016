@@ -62,6 +62,28 @@ function dsg_nets.VggBNDrop()
     return vgg
 end
 
+-- http://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
+function dsg_nets.KerasNet()
+    net = nn.Sequential()
+    net:add(nn.SpatialConvolution(3,32,3,3))
+    net:add(nn.ReLU(true))
+    net:add(nn.SpatialMaxPooling(2,2))
+    net:add(nn.SpatialConvolution(32,32,3,3))
+    net:add(nn.ReLU(true))
+    net:add(nn.SpatialMaxPooling(2,2))
+    net:add(nn.SpatialConvolution(32,64,3,3))
+    net:add(nn.ReLU(true))
+    net:add(nn.SpatialMaxPooling(2,2))
+    net:add(nn.View(64*2*2))
+    net:add(nn.Dropout(0.5))
+    net:add(nn.Linear(64*2*2,64))
+    net:add(nn.ReLU(true))
+    net:add(nn.Dropout(0.5))
+    net:add(nn.Linear(64,4))
+    net:add(nn.LogSoftMax())
+    return net
+end
+
 local function w_init_heuristic(fan_in, fan_out)
     return math.sqrt(1 / (3 * fan_in))
 end

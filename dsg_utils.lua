@@ -141,7 +141,7 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
 end
 
 -- based on: https://github.com/szagoruyko/cifar.torch/blob/master/train.lua
-function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, batch_size, model_name, cuda_flag)
+function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
     -- Create network
     net = fnet()
     if w_init_name then
@@ -154,10 +154,10 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, bat
     criterion = nn.ClassNLLCriterion()
 
     -- Minibatch targets
-    local targets = torch.FloatTensor(batch_size)
+    local targets = torch.FloatTensor(params.batchSize)
 
     -- Using CUDA
-    if cuda_flag then
+    if params.cuda then
         net = net:cuda()
         criterion = criterion:cuda()
         trainset.data = trainset.data:cuda()
@@ -166,6 +166,7 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, bat
     end
 
     local n_train = trainset.label:size(1)
+    print("n_train = " .. n_train)
     optimState = {
       learningRate = 1,
       weightDecay = 0.0005,
@@ -173,13 +174,15 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, bat
       learningRateDecay = 1e-7,
     }
 
-    for epoch=1,n_epochs do
-        print("epoch #" .. epoch .. " [batch_size = " .. batch_size .. "]")
-        if epoch % 25 == 0 then optimState.learningRate = optimState.learningRate / 2 end
+    for epoch=1,params.nEpochs do
+        print("epoch #" .. epoch .. "(of " .. params.nEpochs .. ") [batchSize = " .. params.batchSize .. "]")
+        if epoch % params.epochLearningStep == 0 then
+            optimState.learningRate = optimState.learningRate / 2
+        end
 
-        local indices = torch.randperm(n_train):long():split(batch_size)
+        local indices = torch.randperm(n_train):long():split(params.batchSize)
         -- remove last element so that all the batches have equal size
-        indices[#indices] = nil
+        -- indices[#indices] = nil
 
         for k,v in ipairs(indices) do
             xlua.progress(k, #indices)
@@ -201,8 +204,8 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, n_epochs, bat
             optim.sgd(feval, parameters, optimState)
         end
 
-        if epoch % 1 == 0 then
-            torch.save(model_name .. '_epoch_' .. epoch .. '.net', net)
+        if epoch % params.epochSaveStep == 0 then
+            torch.save(params.modelName .. '_epoch_' .. epoch .. '.net', net)
         end
     end
 

@@ -10,6 +10,10 @@ cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-preprocess', false, 'if true preprocess data')
 cmd:option('-augmentedData', false, 'if true use augmented data')
 cmd:option('-minibatch', false, 'if true train with minibatches')
+cmd:option('-batchSize', 128, 'size of batches')
+cmd:option('-nEpochs', 100, 'number of epochs')
+cmd:option('-epochLearningStep', 25, 'number of epochs between learning rate change')
+cmd:option('-epochSaveStep', 50, 'number of epochs between model save')
 cmd:option('-cuda', false, 'if true train with minibatches')
 
 opt = cmd:parse(arg or {})
@@ -34,7 +38,7 @@ torch.save(opt.modelName .. '.mean', mean)
 torch.save(opt.modelName .. '.stdv', stdv)
 
 if opt.minibatch then
-    net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, 'msr', 50, 128, model_name, opt.cuda)
+    net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, 'msr', opt)
 else
     net = dsg_utils.TrainNet(trainset, dsg_nets.Lenet, 'heuristic', opt.cuda)
 end
