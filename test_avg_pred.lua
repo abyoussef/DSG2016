@@ -14,9 +14,7 @@ nets = {}
 
 for k,v in ipairs(models) do
     net = torch.load(v .. '.net')
-    if cuda_flag then
-        net:cuda()
-    end
+    net:evaluate()
     table.insert(nets, net)
 end
 
