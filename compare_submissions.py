@@ -1,9 +1,10 @@
 import csv
 import cv2
 
-submission_name1 = 'submission9'
-submission_name2 = 'submission10'
-detailed = False
+submission_name1 = 'submission1'
+submission_name2 = 'submission2'
+detailed = True
+classes = 4
 limit = 10
 
 if detailed:
@@ -23,21 +24,37 @@ with open(file1, 'rb') as fsub1:
 			data1.append(row)
 		for row in sub2:
 			data2.append(row)
-		
+
 		assert(len(data1) == len(data2))
 		len = len(data1)
+        discrepance_matrix = []
+        for i in range(0,classes):
+            discrepance_matrix.append([0] * classes)
+        cont_discrepancies = 0
 
-		for i in range(0,len):
-			cur1, cur2 = data1[i], data2[i]
-			assert(cur1['Id'] == cur2['Id'])
-			id = cur1['Id']
+        for i in range(0,len):
+            cur1, cur2 = data1[i], data2[i]
+            assert(cur1['Id'] == cur2['Id'])
+            id = cur1['Id']
 
-			if cur1['label'] != cur2['label'] and limit > 0:
-				i = cv2.imread('roof_images/' + id + '.jpg')
-				print 'sub1 =', cur1['label'], 'sub2 =', cur2['label']
-				if detailed:
-					print(cur1['cat1'], cur1['cat2'], cur1['cat3'], cur1['cat4'])
-					print(cur2['cat1'], cur2['cat2'], cur2['cat3'], cur2['cat4'])
-				cv2.imshow('img', i)
-				cv2.waitKey(0)
-				limit -= 1
+            if cur1['label'] != cur2['label']:
+                discrepance_matrix[ int(cur1['label']) - 1 ][ int(cur2['label']) - 1 ] += 1
+
+            if cur1['label'] != cur2['label']:
+                if detailed:
+                    print cur1['Id']
+                    print cur1['label'], "(" + cur1['cat' + cur1['label']] +  ")", \
+                            cur1['cat1'], cur1['cat2'], cur1['cat3'], cur1['cat4']
+                    print cur2['label'], "(" + cur2['cat' + cur2['label']] +  ")", \
+                            cur2['cat1'], cur2['cat2'], cur2['cat3'], cur2['cat4']
+                    cont_discrepancies += 1
+                if limit > 0:
+                    print 'sub1 =', cur1['label'], 'sub2 =', cur2['label']
+                    i = cv2.imread('roof_images/' + id + '.jpg')
+                    cv2.imshow('img', i)
+                    cv2.waitKey(0)
+                    limit -= 1
+
+        print cont_discrepancies
+        for i in range(0,classes):
+            print(discrepance_matrix[i])
