@@ -17,6 +17,7 @@ nets = {}
 
 for k,v in ipairs(models) do
     net = torch.load(v .. '.net')
+    net:evaluate()
     table.insert(nets, net)
 end
 
