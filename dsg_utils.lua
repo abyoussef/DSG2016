@@ -4,6 +4,7 @@ require 'image'
 require 'nn'
 require 'optim'
 require 'xlua'
+require 'cunn'
 dsg_nets = require 'dsg_nets'
 
 local dsg_utils = {}
@@ -124,7 +125,6 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
 
     -- Using CUDA
     if cuda_flag then
-        require 'cunn'
         net = net:cuda()
         criterion = criterion:cuda()
         trainset.data = trainset.data:cuda()
@@ -158,7 +158,6 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
 
     -- Using CUDA
     if params.cuda then
-        require 'cunn'
         net = net:cuda()
         criterion = criterion:cuda()
         trainset.data = trainset.data:cuda()
