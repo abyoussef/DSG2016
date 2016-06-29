@@ -1,3 +1,4 @@
+require 'cunn'
 dsg_utils = require 'dsg_utils'
 
 cmd = torch.CmdLine()
@@ -26,7 +27,6 @@ local ntest = testset.label:size(1)
 
 -- Using CUDA
 if opt.cuda then
-    require 'cunn'
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
 end

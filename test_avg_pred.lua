@@ -1,8 +1,9 @@
 require 'torch'
+require 'cunn'
 
 dsg_utils = require 'dsg_utils'
 
-local cuda_flag = false
+local cuda_flag = true
 local models = {'model1', 'model2'}
 local submission_name = 'submission'
 
@@ -29,7 +30,6 @@ local ntest = testset.label:size(1)
 
 -- Using CUDA
 if cuda_flag then
-    require 'cunn'
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
 end
@@ -48,6 +48,9 @@ file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 
 for i=1,ntest do
     local prediction = torch.Tensor(4):zero()
+    if cuda_flag then
+        prediction = prediction:cuda()
+    end
     for k,v in ipairs(nets) do
         local net_prediction = nets[k]:forward(testset.data[i])
         net_prediction:exp()
