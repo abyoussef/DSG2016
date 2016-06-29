@@ -14,7 +14,7 @@ th test_net.lua -modelName $modelid  -submissionName $submissionid -cuda
 now=$(date +"%T")
 echo "End time : $now"
 
-#th test_avg_pred.lua
+#th test_avg_pred.lua -submissionName submission_18_19_pavg -cuda
 #th test_avg_weights.lua -submissionName submission_18_19_wavg -cuda
 #cp submission_18_19_wavg.csv /home/mario/Dropbox/DSG/
 #cp submission_18_19_wavg_detailed.csv /home/mario/Dropbox/DSG/

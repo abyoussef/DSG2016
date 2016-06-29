@@ -3,9 +3,14 @@ require 'cunn'
 
 dsg_utils = require 'dsg_utils'
 
-local cuda_flag = true
+cmd = torch.CmdLine()
+cmd:addTime()
+cmd:option('-submissionName', 'submission', 'name of the submission file')
+cmd:option('-cuda', false, 'if true train with minibatches')
+
+opt = cmd:parse(arg or {})
+
 local models = {'model1', 'model2'}
-local submission_name = 'submission'
 
 nmodels = #models
 
@@ -27,7 +32,7 @@ testset = torch.load("dsg_test.t7")
 local ntest = testset.label:size(1)
 
 -- Using CUDA
-if cuda_flag then
+if opt.cuda then
     testset.data = testset.data:cuda()
     testset.label = testset.label:cuda()
 end
@@ -39,14 +44,14 @@ for i = 1,3 do
     testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
 end
 
-local file = assert(io.open(submission_name .. '.csv', "w"))
-local file_detailed = assert(io.open(submission_name .. '_detailed.csv', "w"))
+local file = assert(io.open(opt.submissionName .. '.csv', "w"))
+local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))
 file:write("Id,label\n")
 file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 
 for i=1,ntest do
     local prediction = torch.Tensor(4):zero()
-    if cuda_flag then
+    if opt.cuda then
         prediction = prediction:cuda()
     end
     for k,v in ipairs(nets) do
