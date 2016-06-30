@@ -186,8 +186,13 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
         local totalerror = 0
         local time = sys.clock()
 
-        for k,v in ipairs(indices) do
-            xlua.progress(k, #indices)
+        for t = 1, n_train, params.batchSize do
+            xlua.progress(t, n_train)
+
+            if (t + params.batchSize) >= n_train then
+                break
+            end
+
             local inputs = trainset.data:index(1,v)
             targets:copy(trainset.label:index(1,v))
 
@@ -207,12 +212,14 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
             totalerror = totalerror + err
         end
 
+        xlua.progress(n_train, n_train)
+
         time = sys.clock() - time
         print("time for epoch = " .. (time*1000) .. 'ms')
-        print("Train error =", total error)
+        print("Train error =", totalerror)
 
         if epoch % params.epochSaveStep == 0 then
-            torch.save(params.modelName .. '_epoch_' .. epoch .. '.net', net)
+            torch.save('/home/mario/Dropbox/DSG/' .. params.modelName .. '_epoch_' .. epoch .. '.net', net, 'ascii')
         end
     end
 
