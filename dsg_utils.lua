@@ -206,14 +206,14 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
               gradParameters:zero()
 
               local outputs = net:forward(inputs)
-              local f = criterion:forward(outputs, targets)
+              err = criterion:forward(outputs, targets)
               local df_do = criterion:backward(outputs, targets)
               net:backward(inputs, df_do)
 
               return f, gradParameters
             end
 
-            _, err = optim.sgd(feval, parameters, optimState)
+            optim.sgd(feval, parameters, optimState)
             totalerror = totalerror + err
         end
 
