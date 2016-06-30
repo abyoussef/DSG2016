@@ -183,6 +183,8 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
         local indices = torch.randperm(n_train):long():split(params.batchSize)
         -- remove last element so that all the batches have equal size
         -- indices[#indices] = nil
+        local totalerror = 0
+        local time = sys.clock()
 
         for k,v in ipairs(indices) do
             xlua.progress(k, #indices)
@@ -201,8 +203,13 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
               return f, gradParameters
             end
 
-            optim.sgd(feval, parameters, optimState)
+            local _, err = optim.sgd(feval, parameters, optimState)
+            totalerror = totalerror + err
         end
+
+        time = sys.clock() - time
+        print("time for epoch = " .. (time*1000) .. 'ms')
+        print("Train error =", total error)
 
         if epoch % params.epochSaveStep == 0 then
             torch.save(params.modelName .. '_epoch_' .. epoch .. '.net', net)
