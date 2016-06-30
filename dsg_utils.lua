@@ -184,7 +184,9 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
         -- remove last element so that all the batches have equal size
         -- indices[#indices] = nil
         local totalerror = 0
+        local err
         local time = sys.clock()
+        local batch_pos = 1
 
         for t = 1, n_train, params.batchSize do
             xlua.progress(t, n_train)
@@ -192,6 +194,9 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
             if (t + params.batchSize) >= n_train then
                 break
             end
+
+            local v = indices[batch_pos]
+            batch_pos = batch_pos + 1
 
             local inputs = trainset.data:index(1,v)
             targets:copy(trainset.label:index(1,v))
@@ -208,7 +213,7 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
               return f, gradParameters
             end
 
-            local _, err = optim.sgd(feval, parameters, optimState)
+            _, err = optim.sgd(feval, parameters, optimState)
             totalerror = totalerror + err
         end
 
