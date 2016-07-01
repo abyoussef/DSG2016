@@ -224,7 +224,7 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
         print("Train error =", totalerror)
 
         if epoch % params.epochSaveStep == 0 then
-            torch.save('/home/mario/Dropbox/DSG/' .. params.modelName .. '_epoch_' .. epoch .. '.net', net, 'ascii')
+            torch.save(params.modelName .. '_epoch_' .. epoch .. '.net', net)
         end
     end
 
