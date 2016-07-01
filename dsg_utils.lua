@@ -8,7 +8,7 @@ dsg_nets = require 'dsg_nets'
 local dsg_utils = {}
 local size = 32
 
-function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
+function dsg_utils.TrainNet(trainset, fnet, params)
     setmetatable(trainset,
         {__index = function(t,i) return {t.data[i], t.label[i]} end}
     );
@@ -18,16 +18,16 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
 
     -- Create network
     net = fnet()
-    if w_init_name then
-        dsg_nets.w_init(net, w_init_name)
+    if params.init ~= 'none' then
+        dsg_nets.w_init(net, params.init)
     end
     net:training()
 
     -- Loss function
-    criterion = nn.ClassNLLCriterion()
+    local criterion = nn.ClassNLLCriterion()
 
     -- Using CUDA
-    if cuda_flag then
+    if params.cuda then
         net = net:cuda()
         criterion = criterion:cuda()
         trainset.data = trainset.data:cuda()
@@ -35,20 +35,28 @@ function dsg_utils.TrainNet(trainset, fnet, w_init_name, cuda_flag)
     end
 
     -- Train network
-    trainer = nn.StochasticGradient(net, criterion)
+    local trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
-    trainer.maxIteration = 15
+    trainer.maxIteration = 50
+    local hookIteration = function(sgd, it, currentError)
+        xlua.progress(it, sgd.maxIteration)
+        if it % 5 == 0 then
+            torch.save(params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
+        end
+    end
+    trainer.hookIteration = hookIteration
+
     trainer:train(trainset)
 
     return net
 end
 
 -- based on: https://github.com/szagoruyko/cifar.torch/blob/master/train.lua
-function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
+function dsg_utils.TrainWithMinibatch(trainset, fnet, params)
     -- Create network
     net = fnet()
-    if w_init_name then
-        dsg_nets.w_init(net, w_init_name)
+    if params.init ~= 'none' then
+        dsg_nets.w_init(net, params.init)
     end
     net:training()
     parameters, gradParameters = net:getParameters()
