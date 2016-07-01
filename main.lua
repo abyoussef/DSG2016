@@ -30,7 +30,7 @@ end
 if opt.minibatch then
     net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, opt)
 else
-    net = dsg_utils.TrainNet(trainset, dsg_nets.VggBNDrop, opt)
+    net = dsg_utils.TrainNet(trainset, dsg_nets.VggDrop, opt)
 end
 
 torch.save(opt.modelName .. '.net', net)
