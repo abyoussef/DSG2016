@@ -5,7 +5,6 @@ cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
-cmd:option('-preprocess', false, 'if true preprocess data')
 cmd:option('-batchSize', 100, 'size of batches')
 cmd:option('-epoch', 0, 'epoch that will be tested')
 cmd:option('-cuda', false, 'if true train with minibatches')
@@ -18,22 +17,12 @@ if opt.epoch == 0 then
 else
     net_name = opt.modelName .. '_epoch_' .. opt.epoch
 end
-net = torch.load(net_name .. '.net', 'ascii')
-mean = torch.load(opt.modelName .. '.mean')
-stdv = torch.load(opt.modelName .. '.stdv')
+net = torch.load(net_name .. '.net')
 net:evaluate()
 
 -- Load test set
-if opt.preprocess then
-    dsg_utils.PreprocessDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
-end
 testset = torch.load("dsg_test.t7")
 local ntest = testset.data:size(1)
-
-for i = 1,3 do
-    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
-end
 
 local file = assert(io.open(opt.submissionName .. '.csv', "w"))
 local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))

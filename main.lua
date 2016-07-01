@@ -7,7 +7,6 @@ dsg_nets = require 'dsg_nets'
 cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
-cmd:option('-preprocess', false, 'if true preprocess data')
 cmd:option('-augmentedData', false, 'if true use augmented data')
 cmd:option('-minibatch', false, 'if true train with minibatches')
 cmd:option('-batchSize', 128, 'size of batches')
@@ -19,13 +18,6 @@ cmd:option('-cuda', false, 'if true train with minibatches')
 opt = cmd:parse(arg or {})
 
 -- Load training set
-if opt.preprocess then
-    if opt.augmentedData then
-        dsg_utils.PreprocessAndAugmentDataset("id_train.csv", "dsg_train_augmented.t7", "rgb")
-    else
-        dsg_utils.PreprocessDataset("id_train.csv", "dsg_train.t7", "rgb")
-    end
-end
 if opt.augmentedData then
     trainset = torch.load("dsg_train_augmented.t7")
 else

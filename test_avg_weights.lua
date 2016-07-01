@@ -25,7 +25,6 @@ mean = torch.load(models[1] .. '.mean')
 stdv = torch.load(models[1] .. '.stdv')
 
 -- Load test set
---dsg_utils.PreprocessAndAugmentDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
 testset = torch.load("dsg_test.t7")
 local ntest = testset.label:size(1)
 
@@ -45,11 +44,6 @@ end
 params:div(#nets)
 
 print("Testing")
-
-for i = 1,3 do
-    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
-end
 
 local file = assert(io.open(opt.submissionName .. '.csv', "w"))
 local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))

@@ -5,7 +5,6 @@ cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
-cmd:option('-preprocess', false, 'if true preprocess data')
 cmd:option('-cuda', false, 'if true train with minibatches')
 
 opt = cmd:parse(arg or {})
@@ -14,14 +13,9 @@ local submission_name = 'submission'
 
 -- Load model
 net = torch.load(opt.modelName .. '.net')
-mean = torch.load(opt.modelName .. '.mean')
-stdv = torch.load(opt.modelName .. '.stdv')
 net:evaluate()
 
 -- Load test set
-if opt.preprocess then
-    dsg_utils.PreprocessDataset("sample_submission4.csv", "dsg_test.t7", "rgb")
-end
 testset = torch.load("dsg_test.t7")
 local ntest = testset.label:size(1)
 
@@ -32,11 +26,6 @@ if opt.cuda then
 end
 
 print("Testing")
-
-for i = 1,3 do
-    testset.data[{ {}, {i}, {}, {} }]:add(-mean[i])
-    testset.data[{ {}, {i}, {}, {} }]:div(stdv[i])
-end
 
 --classes = {"North-South", "East-West", "Flat roof" , "Other"}
 
