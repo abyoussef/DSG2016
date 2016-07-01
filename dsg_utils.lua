@@ -154,14 +154,14 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
     criterion = nn.ClassNLLCriterion()
 
     -- Minibatch targets
+    local inputs = torch.FloatTensor(params.batchSize, 3, size, size)
     local targets = torch.FloatTensor(params.batchSize)
 
     -- Using CUDA
     if params.cuda then
         net = net:cuda()
         criterion = criterion:cuda()
-        trainset.data = trainset.data:cuda()
-        trainset.label = trainset.label:cuda()
+        inputs = inputs:cuda()
         targets = targets:cuda()
     end
 
@@ -198,7 +198,7 @@ function dsg_utils.TrainWithMinibatch(trainset, fnet, w_init_name, params)
             local v = indices[batch_pos]
             batch_pos = batch_pos + 1
 
-            local inputs = trainset.data:index(1,v)
+            inputs:copy(trainset.data:index(1,v))
             targets:copy(trainset.label:index(1,v))
 
             local feval = function(x)
