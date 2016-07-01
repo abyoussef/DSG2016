@@ -38,14 +38,19 @@ function dsg_utils.TrainNet(trainset, fnet, params)
     local trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
     trainer.maxIteration = 50
+
+    local tic
     local hookIteration = function(sgd, it, currentError)
-        xlua.progress(it, sgd.maxIteration)
+        local time = torch.toc(tic)
+        print("Iteration " .. it .. ", Time =" .. time)
         if it % 5 == 0 then
             torch.save(params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
         end
+        tic = torch.tic()
     end
     trainer.hookIteration = hookIteration
 
+    tic = torch.tic()
     trainer:train(trainset)
 
     return net
