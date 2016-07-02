@@ -82,10 +82,11 @@ end
 
 trainData = LoadAndAugmentDataset('id_train.csv')
 local ntrain = trainData.data:size(1)
+trainData.Id = nil
 testData = LoadDataset('sample_submission4.csv')
 local ntest = testData.data:size(1)
 testData.label = nil
-normalizationType = 'yuv'
+normalizationType = 'rgb'
 
 if normalizationType == 'rgb' then
     mean = {}
@@ -103,6 +104,9 @@ if normalizationType == 'rgb' then
         testData.data[{ {}, {i}, {}, {} }]:add(-mean[i])
         testData.data[{ {}, {i}, {}, {} }]:div(stdv[i])
     end
+
+    torch.save('dsg_train_mean.t7', mean)
+    torch.save('dsg_train_stdv.t7', stdv)
 elseif normalizationType == 'yuv' then
     -- taken from: https://github.com/szagoruyko/cifar.torch/blob/master/provider.lua
     local normalization = nn.SpatialContrastiveNormalization(1, image.gaussian1D(7))
