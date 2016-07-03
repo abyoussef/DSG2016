@@ -19,6 +19,9 @@ cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
 
+-- create log file
+cmd:log('log_main_' .. opt.modelName .. '.log', opt)
+
 -- Load training set
 if opt.augmentedData then
     trainset = torch.load("dsg_train_augmented.t7")
@@ -31,10 +34,7 @@ end
 if opt.minibatch then
     net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, opt)
 else
-    net = dsg_utils.TrainNet(trainset, dsg_nets.VggDrop, opt)
+    net = dsg_utils.TrainNet(trainset, dsg_nets.VggBNDrop, opt)
 end
 
 torch.save(opt.modelName .. '.net', net)
-
--- create log file
-cmd:log('log_main', opt)

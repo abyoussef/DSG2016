@@ -10,7 +10,8 @@ cmd:option('-float', false, 'if true cas to float')
 
 opt = cmd:parse(arg or {})
 
-local submission_name = 'submission'
+-- create log file
+cmd:log('log_test_net_' .. opt.submissionName .. '.log', opt)
 
 -- Load model
 net = torch.load(opt.modelName .. '.net')
@@ -61,6 +62,3 @@ end
 
 file:close()
 print("Testing finished")
-
--- create log file
-cmd:log('log_test_net', opt)

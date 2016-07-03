@@ -11,6 +11,9 @@ cmd:option('-cuda', false, 'if true train with minibatches')
 
 opt = cmd:parse(arg or {})
 
+-- create log file
+cmd:log('log_test_minibatch_' .. opt.submissionName .. '.log', opt)
+
 -- Load model
 if opt.epoch == 0 then
     net_name = opt.modelName
@@ -57,6 +60,3 @@ end
 xlua.progress(ntest, ntest)
 
 file:close()
-
--- create log file
-cmd:log('log_test_net', opt)

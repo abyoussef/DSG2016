@@ -1,5 +1,4 @@
 require 'torch'
-
 dsg_utils = require 'dsg_utils'
 
 cmd = torch.CmdLine()
@@ -9,10 +8,12 @@ cmd:option('-cuda', false, 'if true train with minibatches')
 
 opt = cmd:parse(arg or {})
 
-local models = {'model1', 'model2'}
-local nmodels = #models
+-- create log file
+cmd:log('log_test_avg_weights_' .. opt.submissionName .. '.log', opt)
 
 -- Load models
+local models = {'model1', 'model2'}
+local nmodels = #models
 nets = {}
 
 for k,v in ipairs(models) do
@@ -30,7 +31,6 @@ local ntest = testset.label:size(1)
 
 if opt.cuda then
     testset.data = testset.data:cuda()
-    testset.label = testset.label:cuda()
 end
 
 -- Average weights of nets
