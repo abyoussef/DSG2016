@@ -6,6 +6,7 @@ cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
 cmd:option('-cuda', false, 'if true train with minibatches')
+cmd:option('-float', false, 'if true cas to float')
 
 opt = cmd:parse(arg or {})
 
@@ -17,12 +18,15 @@ net:evaluate()
 
 -- Load test set
 testset = torch.load("dsg_test.t7")
-local ntest = testset.label:size(1)
+local ntest = testset.data:size(1)
+
+if opt.float then
+    testset.data = testset.data:float()
+end
 
 -- Using CUDA
 if opt.cuda then
     testset.data = testset.data:cuda()
-    testset.label = testset.label:cuda()
 end
 
 print("Testing")
