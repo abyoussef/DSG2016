@@ -1,5 +1,6 @@
 require 'nn'
 require 'image'
+preprocessing = require 'preprocessing_nagadomi'
 
 cmd = torch.CmdLine()
 cmd:option('-modelName', 'model', 'name of the model')
@@ -29,25 +30,61 @@ if opt.cuda then
     img = img:cuda()
 end
 
-mean = torch.load('dsg_train_mean.t7')
-stdv = torch.load('dsg_train_stdv.t7')
-
-for i = 1,3 do
-    img[{ {i}, {}, {} }]:add(-mean[i])
-    img[{ {i}, {}, {} }]:div(stdv[i])
-end
+--params = torch.load('dsg_params.t7')
+--preprocessing.preprocessing(img, params)
 
 net = torch.load(opt.modelName .. '.net')
 net:evaluate()
 
+local function CheckModule(name)
+    if name == 'nn.SpatialConvolution' then return true end
+    if name == 'nn.ReLU' then return true end
+    if name == 'nn.SpatialMaxPooling' then return true end
+    return false
+end
+
 for i = 1,net:size() do
-    module = net:get(i)
+    local module = net:get(i)
+    local name = torch.typename(module)
     img = module:forward(img)
 
-    if torch.typename(module) ~= 'nn.Dropout' then
+    if CheckModule(name) then
+        print(torch.typename(module))
+
+        if name:sub(1,3) == 'nn.' then
+            name = name:sub(4, name:len())
+        end
+
         if img:dim() == 3 then
+            local nw = math.min(30, img:size(1))
+            local nh = math.ceil(img:size(1) / nw)
+            local moduleOut = torch.Tensor(nh * img:size(2), nw * img:size(3))
+            local moduleWeight
+            local saveWeights = false
+            if name == 'SpatialConvolution' and module.weight:size(2) == 3 then
+                saveWeights = true
+                moduleWeight = torch.Tensor(module.weight:size(2), nh * module.weight:size(3), nw * module.weight:size(4))
+            end
+            print(i, img:size(1), img:size(2), img:size(3))
+
             for j = 1,img:size(1) do
-                image.save(path .. i .. '_' .. j .. '.jpg', img[j])
+                local row = math.ceil(j / nw)
+                local col = j - (row - 1) * nw
+
+                local aux = moduleOut:narrow(1, 1 + (row - 1) * img:size(2), img:size(2))
+                                :narrow(2, 1 + (col - 1) * img:size(3), img:size(3))
+                aux:copy(img[j])
+
+                if saveWeights then
+                    aux = moduleWeight:narrow(2, 1 + (row - 1) * module.weight:size(3), module.weight:size(3))
+                                    :narrow(3, 1 + (col - 1) * module.weight:size(4), module.weight:size(4))
+                    aux:copy(module.weight[j])
+                end
+            end
+
+            image.save(path .. i .. '_' .. name .. '_out' .. '.jpg', moduleOut)
+            if saveWeights then
+                image.save(path .. i .. '_' .. name .. '_weight' .. '.jpg', moduleWeight)
             end
         end
     end
