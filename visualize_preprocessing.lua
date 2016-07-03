@@ -2,7 +2,6 @@ require 'csvigo'
 require 'image'
 preprocessing = require 'preprocessing_nagadomi'
 
-local path = 'visualization/'
 local size = 32
 local params = torch.load('dsg_params.t7')
 local parsed = csvigo.load({path='id_train.csv', mode="query"})
