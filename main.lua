@@ -14,7 +14,8 @@ cmd:option('-batchSize', 128, 'size of batches')
 cmd:option('-nEpochs', 100, 'number of epochs')
 cmd:option('-epochLearningStep', 25, 'number of epochs between learning rate change')
 cmd:option('-epochSaveStep', 50, 'number of epochs between model save')
-cmd:option('-cuda', false, 'if true train with minibatches')
+cmd:option('-cuda', false, 'if true cast to cuda')
+cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
 
