@@ -26,6 +26,12 @@ function dsg_utils.TrainNet(trainset, fnet, params)
     -- Loss function
     local criterion = nn.ClassNLLCriterion()
 
+    if params.float then
+        net = net:float()
+        criterion = criterion:float()
+        trainset.data = trainset.data:float()
+    end
+
     -- Using CUDA
     if params.cuda then
         net = net:cuda()
@@ -38,11 +44,12 @@ function dsg_utils.TrainNet(trainset, fnet, params)
     local trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
     trainer.maxIteration = 50
+    trainer.learningRateDecay = 1e-7
 
     local tic
     local hookIteration = function(sgd, it, currentError)
         local time = torch.toc(tic)
-        print("Iteration " .. it .. ", Time =" .. time)
+        print("Iteration " .. it .. ", Time : " .. time)
         if it % 5 == 0 then
             torch.save(params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
         end
