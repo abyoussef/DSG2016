@@ -1,6 +1,7 @@
 require 'csvigo'
 require 'image'
 
+local path = 'visualization/'
 local size = 32
 local parsed = csvigo.load({path='id_train.csv', mode="query"})
 local dataset = parsed('all')
@@ -29,6 +30,7 @@ local function visualize_class(label)
     end
 
     image.display({image=res, legend=label})
+    image.save(path .. 'class' .. label .. '.jpg', res)
 end
 
 visualize_class('1')
