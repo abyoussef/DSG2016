@@ -10,7 +10,7 @@ cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-augmentedData', false, 'if true use augmented data')
 cmd:option('-init', 'none', 'if true use augmented data')
 cmd:option('-minibatch', false, 'if true train with minibatches')
-cmd:option('-batchSize', 128, 'size of batches')
+cmd:option('-batchSize', 64, 'size of batches')
 cmd:option('-nEpochs', 100, 'number of epochs')
 cmd:option('-epochLearningStep', 25, 'number of epochs between learning rate change')
 cmd:option('-epochSaveStep', 50, 'number of epochs between model save')
@@ -32,7 +32,10 @@ end
 --net, mean, std = dsg_utils.KFoldedCV(trainset, 4, dsg_nets.Lenet, opt.cuda)
 
 if opt.minibatch then
-    net = dsg_utils.TrainWithMinibatch(trainset, dsg_nets.VggBNDrop, opt)
+	testset = torch.load("dsg_test.t7")
+	assert(testset.data)
+	assert(testset.Id)
+    net = dsg_utils.TrainWithMinibatch(trainset, testset, dsg_nets.VggBNDrop, opt)
 else
     net = dsg_utils.TrainNet(trainset, dsg_nets.VggBNDrop, opt)
 end
