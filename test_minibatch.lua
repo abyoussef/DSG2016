@@ -1,5 +1,4 @@
 require 'cunn'
-dsg_utils = require 'dsg_utils'
 
 cmd = torch.CmdLine()
 cmd:addTime()

@@ -1,12 +1,11 @@
 require 'cunn'
-dsg_utils = require 'dsg_utils'
 
 cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
 cmd:option('-cuda', false, 'if true train with minibatches')
-cmd:option('-float', false, 'if true cas to float')
+cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
 
