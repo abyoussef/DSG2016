@@ -2,7 +2,6 @@ require 'csvigo'
 require 'image'
 require 'xlua'
 require 'nn'
-require 'unsup'
 preprocessing = require 'preprocessing_nagadomi'
 
 local size = 32
@@ -92,4 +91,6 @@ testData.label = nil
 params = preprocessing.preprocessing(trainData.data)
 preprocessing.preprocessing(testData.data, params)
 
+torch.save('dsg_train.t7', trainData)
+torch.save('dsg_test.t7', testData)
 torch.save('dsg_params.t7', params)
