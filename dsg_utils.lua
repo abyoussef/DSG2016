@@ -65,7 +65,7 @@ end
 
 local function TestWithMiniBatch(testset, net, params, epoch)
     local ntest = testset.data:size(1)
-    local file = assert(io.open(params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
+    local file = assert(io.open('/home/mario/Dropbox/DSG/' .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
     file:write("Id,label\n")
     net:evaluate()
 
@@ -99,7 +99,6 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         dsg_nets.w_init(net, params.init)
     end
     net:training()
-    parameters, gradParameters = net:getParameters()
 
     -- Loss function
     criterion = nn.ClassNLLCriterion()
@@ -116,6 +115,8 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         targets = targets:cuda()
     end
 
+    parameters, gradParameters = net:getParameters()
+
     local n_train = trainset.label:size(1)
     print("n_train = " .. n_train)
     optimState = {
@@ -130,6 +131,7 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         --if epoch % params.epochLearningStep == 0 then
         --    optimState.learningRate = optimState.learningRate / 2
         --end
+        optimState.learningRate = 0.1 * math.pow(0.9, epoch - 1)
 
         local indices = torch.randperm(n_train):long():split(params.batchSize)
         -- remove last element so that all the batches have equal size
@@ -171,7 +173,7 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         xlua.progress(n_train, n_train)
 
         time = sys.clock() - time
-        print("time for epoch = " .. (time*1000) .. 'ms')
+        print("time for epoch = " .. time .. 's')
         print("Train error =", totalerror)
 
         if epoch % params.epochSaveStep == 0 then
