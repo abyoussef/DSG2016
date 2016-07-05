@@ -20,7 +20,7 @@ cmd:option('-float', false, 'if true cast to float')
 opt = cmd:parse(arg or {})
 
 -- create log file
-cmd:log('log_main_' .. opt.modelName .. '.log', opt)
+cmd:log('/home/mario/Dropbox/DSG/log_main_' .. opt.modelName .. '.log', opt)
 
 -- Load training set
 if opt.augmentedData then
@@ -33,8 +33,6 @@ end
 
 if opt.minibatch then
 	testset = torch.load("dsg_test.t7")
-	assert(testset.data)
-	assert(testset.Id)
     net = dsg_utils.TrainWithMinibatch(trainset, testset, dsg_nets.VggBNDrop, opt)
 else
     net = dsg_utils.TrainNet(trainset, dsg_nets.VggBNDrop, opt)
