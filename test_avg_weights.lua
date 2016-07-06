@@ -1,4 +1,5 @@
-require 'torch'
+require 'nn'
+require 'cunn'
 
 cmd = torch.CmdLine()
 cmd:addTime()
@@ -18,6 +19,10 @@ nets = {}
 for k,v in ipairs(models) do
     net = torch.load(v .. '.net')
     net:evaluate()
+    if opt.cuda then
+        net = net:cuda()
+        testset.data = testset.data:cuda()
+    end
     table.insert(nets, net)
 end
 

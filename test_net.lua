@@ -1,3 +1,4 @@
+require 'nn'
 require 'cunn'
 
 cmd = torch.CmdLine()
@@ -21,11 +22,13 @@ testset = torch.load("dsg_test.t7")
 local ntest = testset.data:size(1)
 
 if opt.float then
+    net = net:float()
     testset.data = testset.data:float()
 end
 
 -- Using CUDA
 if opt.cuda then
+    net = net:cuda()
     testset.data = testset.data:cuda()
 end
 

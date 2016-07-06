@@ -1,3 +1,4 @@
+require 'nn'
 require 'cunn'
 
 cmd = torch.CmdLine()
@@ -21,6 +22,11 @@ else
 end
 net = torch.load(net_name .. '.net')
 net:evaluate()
+
+if opt.cuda then
+    net = net:cuda()
+    testset.data = testset.data:cuda()
+end
 
 -- Load test set
 testset = torch.load("dsg_test.t7")

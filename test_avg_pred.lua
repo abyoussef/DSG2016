@@ -1,4 +1,4 @@
-require 'torch'
+require 'nn'
 require 'cunn'
 
 cmd = torch.CmdLine()
@@ -19,6 +19,9 @@ nets = {}
 for k,v in ipairs(models) do
     net = torch.load(v .. '.net')
     net:evaluate()
+    if opt.cuda then
+        net = net:cuda()
+    end
     table.insert(nets, net)
 end
 
