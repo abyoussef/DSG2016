@@ -51,7 +51,7 @@ function dsg_utils.TrainOnline(trainset, fnet, params)
         local time = torch.toc(tic)
         print("Iteration " .. it .. ", Time : " .. time)
         if it % params.epochSaveStep == 0 then
-            torch.save(params.savePath .. params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
+            torch.save(params.modelsSavePath .. params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
         end
         tic = torch.tic()
     end
@@ -65,8 +65,8 @@ end
 
 local function TestWithMiniBatch(testset, net, params, epoch)
     local ntest = testset.data:size(1)
-    local file = assert(io.open(params.savePath .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
-    local file_detailed = assert(io.open(params.savePath .. params.modelName .. '_submission_epoch_' .. epoch .. '_detailed.csv', "w"))
+    local file = assert(io.open(params.resultsSavePath .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
+    local file_detailed = assert(io.open(params.resultsSavePath .. params.modelName .. '_submission_epoch_' .. epoch .. '_detailed.csv', "w"))
     file:write("Id,label\n")
     file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
     net:evaluate()
@@ -185,7 +185,7 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         print("Train error =", totalerror)
 
         if epoch % params.epochSaveStep == 0 then
-            torch.save(params.savePath .. params.modelName .. '_epoch_' .. epoch .. '.net', net)
+            torch.save(params.modelsSavePath .. params.modelName .. '_epoch_' .. epoch .. '.net', net)
             TestWithMiniBatch(testset, net, params, epoch)
             net:training()
         end

@@ -14,14 +14,15 @@ cmd:option('-batchSize', 64, 'size of batches')
 cmd:option('-nEpochs', 100, 'number of epochs')
 cmd:option('-epochLearningStep', 1, 'number of epochs between learning rate change')
 cmd:option('-epochSaveStep', 50, 'number of epochs between model save')
-cmd:option('-savePath', 'results/', 'path to the save directory')
+cmd:option('-resultsSavePath', 'results/', 'path to the save directory for result files')
+cmd:option('-modelsSavePath', 'models/', 'path to the save directory for models')
 cmd:option('-cuda', false, 'if true cast to cuda')
 cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
 
 -- create log file
-cmd:log(opt.savePath .. 'main_' .. opt.modelName .. '.log', opt)
+cmd:log(opt.resultsSavePath .. 'main_' .. opt.modelName .. '.log', opt)
 
 -- Load training set
 if opt.augmentedData then
@@ -39,4 +40,4 @@ else
     net = dsg_utils.TrainOnline(trainset, dsg_nets.VggBNDrop, opt)
 end
 
-torch.save(opt.savePath .. opt.modelName .. '.net', net)
+torch.save(opt.modelsSavePath .. opt.modelName .. '.net', net)
