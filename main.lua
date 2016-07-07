@@ -17,7 +17,7 @@ cmd:option('-epochSaveStep', 50, 'number of epochs between model save')
 cmd:option('-resultsSavePath', 'results/', 'path to the save directory for result files')
 cmd:option('-modelsSavePath', 'models/', 'path to the save directory for models')
 cmd:option('-cuda', false, 'if true cast to cuda')
-cmd:optiom('-cudnn', false, 'if true use cudnn')
+cmd:option('-cudnn', false, 'if true use cudnn')
 cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
