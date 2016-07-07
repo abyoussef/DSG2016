@@ -27,9 +27,6 @@ for k,v in ipairs(models) do
     table.insert(nets, net)
 end
 
-mean = torch.load(models[1] .. '.mean')
-stdv = torch.load(models[1] .. '.stdv')
-
 -- Load test set
 testset = torch.load("dsg_test.t7")
 local ntest = testset.label:size(1)
