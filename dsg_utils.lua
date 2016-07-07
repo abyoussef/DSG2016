@@ -66,7 +66,9 @@ end
 local function TestWithMiniBatch(testset, net, params, epoch)
     local ntest = testset.data:size(1)
     local file = assert(io.open(params.savePath .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
+    local file_detailed = assert(io.open(params.savePath .. params.modelName .. '_submission_epoch_' .. epoch .. '_detailed.csv', "w"))
     file:write("Id,label\n")
+    file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
     net:evaluate()
 
     for i=1,ntest,params.batchSize do
@@ -84,11 +86,18 @@ local function TestWithMiniBatch(testset, net, params, epoch)
 
         for j=1,bs do
             local confidences, indices = torch.sort(prediction[j], true) -- sort in descending order
+
             file:write(testset.Id[i + j - 1] .. "," .. indices[1] .. "\n")
+            file_detailed:write(testset.Id[i + j - 1] .. "," .. indices[1])
+            for k=1,4 do
+                file_detailed:write("," .. prediction[j][k])
+            end
+            file_detailed:write("\n")
         end
     end
     xlua.progress(ntest, ntest)
     file:close()
+    file_detailed:close()
 end
 
 -- based on: https://github.com/szagoruyko/cifar.torch/blob/master/train.lua
