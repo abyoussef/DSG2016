@@ -5,6 +5,8 @@ cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
+cmd:option('-loadPath', 'results/', 'path to the models')
+cmd:option('-savePath', 'results/', 'path to the save directory')
 cmd:option('-batchSize', 100, 'size of batches')
 cmd:option('-epoch', 0, 'epoch that will be tested')
 cmd:option('-cuda', false, 'if true train with minibatches')
@@ -12,7 +14,7 @@ cmd:option('-cuda', false, 'if true train with minibatches')
 opt = cmd:parse(arg or {})
 
 -- create log file
-cmd:log('log_test_minibatch_' .. opt.submissionName .. '.log', opt)
+cmd:log(opt.savePath .. 'test_minibatch_' .. opt.submissionName .. '.log', opt)
 
 -- Load model
 if opt.epoch == 0 then
@@ -20,7 +22,7 @@ if opt.epoch == 0 then
 else
     net_name = opt.modelName .. '_epoch_' .. opt.epoch
 end
-net = torch.load(net_name .. '.net')
+net = torch.load(opt.loadPath .. net_name .. '.net')
 net:evaluate()
 
 if opt.cuda then
@@ -32,8 +34,8 @@ end
 testset = torch.load("dsg_test.t7")
 local ntest = testset.data:size(1)
 
-local file = assert(io.open(opt.submissionName .. '.csv', "w"))
-local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))
+local file = assert(io.open(opt.savePath .. opt.submissionName .. '.csv', "w"))
+local file_detailed = assert(io.open(opt.savePath .. opt.submissionName .. '_detailed.csv', "w"))
 file:write("Id,label\n")
 file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 

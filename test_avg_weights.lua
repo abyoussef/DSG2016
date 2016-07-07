@@ -4,12 +4,14 @@ require 'cunn'
 cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-submissionName', 'submission', 'name of the submission file')
+cmd:option('-loadPath', 'results/', 'path to the models')
+cmd:option('-savePath', 'results/', 'path to the save directory')
 cmd:option('-cuda', false, 'if true train with minibatches')
 
 opt = cmd:parse(arg or {})
 
 -- create log file
-cmd:log('log_test_avg_weights_' .. opt.submissionName .. '.log', opt)
+cmd:log(opt.savePath .. 'test_avg_weights_' .. opt.submissionName .. '.log', opt)
 
 -- Load models
 local models = {'model1', 'model2'}
@@ -17,7 +19,7 @@ local nmodels = #models
 nets = {}
 
 for k,v in ipairs(models) do
-    net = torch.load(v .. '.net')
+    net = torch.load(opt.loadPath .. v .. '.net')
     net:evaluate()
     if opt.cuda then
         net = net:cuda()
@@ -49,8 +51,8 @@ params:div(#nets)
 
 print("Testing")
 
-local file = assert(io.open(opt.submissionName .. '.csv', "w"))
-local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))
+local file = assert(io.open(opt.savePath .. opt.submissionName .. '.csv', "w"))
+local file_detailed = assert(io.open(opt.savePath .. opt.submissionName .. '_detailed.csv', "w"))
 file:write("Id,label\n")
 file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 

@@ -5,16 +5,18 @@ cmd = torch.CmdLine()
 cmd:addTime()
 cmd:option('-modelName', 'model', 'name of the model')
 cmd:option('-submissionName', 'submission', 'name of the submission file')
+cmd:option('-loadPath', 'results/', 'path to the model')
+cmd:option('-savePath', 'results/', 'path to the save directory')
 cmd:option('-cuda', false, 'if true train with minibatches')
 cmd:option('-float', false, 'if true cast to float')
 
 opt = cmd:parse(arg or {})
 
 -- create log file
-cmd:log('log_test_net_' .. opt.submissionName .. '.log', opt)
+cmd:log(opt.savePath .. 'test_net_' .. opt.submissionName .. '.log', opt)
 
 -- Load model
-net = torch.load(opt.modelName .. '.net')
+net = torch.load(opt.loadPath .. opt.modelName .. '.net')
 net:evaluate()
 
 -- Load test set
@@ -44,8 +46,8 @@ print("Testing")
 --end
 --image.display(testset.data[rtest])
 
-local file = assert(io.open(opt.submissionName .. '.csv', "w"))
-local file_detailed = assert(io.open(opt.submissionName .. '_detailed.csv', "w"))
+local file = assert(io.open(opt.savePath .. opt.submissionName .. '.csv', "w"))
+local file_detailed = assert(io.open(opt.savePath .. opt.submissionName .. '_detailed.csv', "w"))
 file:write("Id,label\n")
 file_detailed:write("Id,label,cat1,cat2,cat3,cat4\n")
 

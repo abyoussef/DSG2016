@@ -8,7 +8,7 @@ dsg_nets = require 'dsg_nets'
 local dsg_utils = {}
 local size = 32
 
-function dsg_utils.TrainNet(trainset, fnet, params)
+function dsg_utils.TrainOnline(trainset, fnet, params)
     setmetatable(trainset,
         {__index = function(t,i) return {t.data[i], t.label[i]} end}
     );
@@ -43,15 +43,15 @@ function dsg_utils.TrainNet(trainset, fnet, params)
     -- Train network
     local trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
-    trainer.maxIteration = 50
+    trainer.maxIteration = params.nEpochs
     trainer.learningRateDecay = 1e-7
 
     local tic
     local hookIteration = function(sgd, it, currentError)
         local time = torch.toc(tic)
         print("Iteration " .. it .. ", Time : " .. time)
-        if it % 5 == 0 then
-            torch.save(params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
+        if it % params.epochSaveStep == 0 then
+            torch.save(params.savePath .. params.modelName .. '_iteration_' .. it .. '.net', sgd.module)
         end
         tic = torch.tic()
     end
@@ -65,7 +65,7 @@ end
 
 local function TestWithMiniBatch(testset, net, params, epoch)
     local ntest = testset.data:size(1)
-    local file = assert(io.open('/home/mario/Dropbox/DSG/' .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
+    local file = assert(io.open(params.savePath .. params.modelName .. '_submission_epoch_' .. epoch .. '.csv', "w"))
     file:write("Id,label\n")
     net:evaluate()
 
@@ -125,17 +125,16 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
       momentum = 0.9,
       --learningRateDecay = 1e-7,
     }
+    local learningRate = 0.1
 
     for epoch=1,params.nEpochs do
         print("epoch #" .. epoch .. "(of " .. params.nEpochs .. ") [batchSize = " .. params.batchSize .. "]")
-        --if epoch % params.epochLearningStep == 0 then
-        --    optimState.learningRate = optimState.learningRate / 2
-        --end
-        optimState.learningRate = 0.1 * math.pow(0.9, epoch - 1)
+        if epoch % params.epochLearningStep == 0 then
+            learningRate = learningRate * 0.9
+            optimState.learningRate = learningRate
+        end
 
         local indices = torch.randperm(n_train):long():split(params.batchSize)
-        -- remove last element so that all the batches have equal size
-        -- indices[#indices] = nil
         local totalerror = 0
         local err
         local time = sys.clock()
@@ -177,7 +176,7 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         print("Train error =", totalerror)
 
         if epoch % params.epochSaveStep == 0 then
-            torch.save(params.modelName .. '_epoch_' .. epoch .. '.net', net)
+            torch.save(params.savePath .. params.modelName .. '_epoch_' .. epoch .. '.net', net)
             TestWithMiniBatch(testset, net, params, epoch)
             net:training()
         end
