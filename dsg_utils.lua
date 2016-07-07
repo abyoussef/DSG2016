@@ -40,6 +40,11 @@ function dsg_utils.TrainOnline(trainset, fnet, params)
         trainset.label = trainset.label:cuda()
     end
 
+    if params.cudnn then
+        require 'cudnn'
+        cudnn.convert(net, cudnn)
+    end
+
     -- Train network
     local trainer = nn.StochasticGradient(net, criterion)
     trainer.learningRate = 0.001
@@ -122,6 +127,11 @@ function dsg_utils.TrainWithMinibatch(trainset, testset, fnet, params)
         criterion = criterion:cuda()
         inputs = inputs:cuda()
         targets = targets:cuda()
+    end
+
+    if params.cudnn then
+        require 'cudnn'
+        cudnn.convert(net, cudnn)
     end
 
     parameters, gradParameters = net:getParameters()
