@@ -68,5 +68,5 @@ for i=1,ntest do
 end
 
 file:close()
-
+file_detailed:close()
 print("Testing finished")

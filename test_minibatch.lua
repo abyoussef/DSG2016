@@ -67,3 +67,4 @@ end
 xlua.progress(ntest, ntest)
 
 file:close()
+file_detailed:close()
