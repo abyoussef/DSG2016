@@ -2,6 +2,23 @@ require 'nn'
 
 local dsg_nets = {}
 
+-- https://github.com/iassael/torch-linearo/
+local function linear_orthogonal_init(net)
+    initScale = 1.1
+
+    for k,v in pairs(net:findModules('nn.Linear')) do
+        local M1 = torch.randn(v.weight:size(1), v.weight:size(1))
+        local M2 = torch.randn(v.weight:size(2), v.weight:size(2))
+        local n_min = math.min(v.weight:size(1), v.weight:size(2))
+
+        local Q1, R1 = torch.qr(M1)
+        local Q2, R2 = torch.qr(M2)
+
+        v.weight:copy(Q1:narrow(2,1,n_min) * Q2:narrow(1,1,n_min)):mul(initScale)
+        v.bias:zero()
+    end
+end
+
 function dsg_nets.Lenet()
     net = nn.Sequential()
     net:add(nn.SpatialConvolution(3,6,5,5)) -- 1 input image channel, 6 output channels, 5x5 convolution kernel
@@ -17,6 +34,7 @@ function dsg_nets.Lenet()
     net:add(nn.ReLU())
     net:add(nn.Linear(84,4)) -- 10 is the number of outputs of the network
     net:add(nn.LogSoftMax()) -- converts the output to a log-probability. Useful for classification problems
+    linear_orthogonal_init(net)
     return net
 end
 
@@ -59,6 +77,7 @@ function dsg_nets.VggBNDrop()
     vgg:add(nn.Dropout(0.5))
     vgg:add(nn.Linear(512,4))
     vgg:add(nn.LogSoftMax())
+    linear_orthogonal_init(vgg)
     return vgg
 end
 
@@ -89,6 +108,7 @@ function dsg_nets.VggDrop()
     vgg:add(nn.Dropout(0.5))
     vgg:add(nn.Linear(128,4))
     vgg:add(nn.LogSoftMax())
+    linear_orthogonal_init(vgg)
     return vgg
 end
 
@@ -111,6 +131,7 @@ function dsg_nets.KerasNet()
     net:add(nn.Dropout(0.5))
     net:add(nn.Linear(64,4))
     net:add(nn.LogSoftMax())
+    linear_orthogonal_init(net)
     return net
 end
 
