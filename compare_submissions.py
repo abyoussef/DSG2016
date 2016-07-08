@@ -41,18 +41,18 @@ with open(file1, 'rb') as fsub1:
 
             if cur1['label'] != cur2['label']:
                 cont_discrepancies += 1
-                if detailed:
-                    print cur1['Id']
-                    print cur1['label'], "(" + cur1['cat' + cur1['label']] +  ")", \
-                            cur1['cat1'], cur1['cat2'], cur1['cat3'], cur1['cat4']
-                    print cur2['label'], "(" + cur2['cat' + cur2['label']] +  ")", \
-                            cur2['cat1'], cur2['cat2'], cur2['cat3'], cur2['cat4']
                 if limit > 0:
                     print 'Id = ', cur1['Id'] ,'sub1 =', cur1['label'], 'sub2 =', cur2['label']
                     i = cv2.imread('roof_images/' + id + '.jpg')
                     cv2.imshow('img', i)
                     cv2.waitKey(0)
                     limit -= 1
+                    if detailed:
+                        print cur1['Id']
+                        print cur1['label'], "(" + cur1['cat' + cur1['label']] +  ")", \
+                                cur1['cat1'], cur1['cat2'], cur1['cat3'], cur1['cat4']
+                        print cur2['label'], "(" + cur2['cat' + cur2['label']] +  ")", \
+                                cur2['cat1'], cur2['cat2'], cur2['cat3'], cur2['cat4']
 
         print cont_discrepancies
         for i in range(0,classes):
