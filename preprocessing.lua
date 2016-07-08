@@ -33,16 +33,32 @@ local function LoadAndAugmentDataset(filename)
     local parsed = csvigo.load({path=filename, mode="query"})
     local dataset = parsed('all')
     local ndata = #dataset.Id
+
+    local cont = {0, 0, 0, 0}
+    for i = 1,ndata do
+        local cur = tonumber(dataset.label[i])
+        cont[cur] = cont[cur] + 1
+    end
+    print(cont)
+
     local ret = {}
-    ret.data = torch.Tensor(8 * ndata, 3, size, size)
-    ret.label = torch.IntTensor(8 * ndata)
+    local nret = 8 * (cont[1] + cont[2]) + 16 * cont[3] + 16 * cont[4]
+    ret.data = torch.Tensor(nret, 3, size, size)
+    ret.label = torch.IntTensor(nret)
+    pos = 1
 
     for k,v in ipairs(dataset.Id) do
         xlua.progress(k, ndata)
-        local i1 = image.scale(image.load('roof_images/' .. v .. '.jpg'), size, size)
-        local i2 = image.hflip(i1)
-        local i3 = image.vflip(i1)
-        local i4 = image.vflip(i2)
+        local i0 = image.load('roof_images/' .. v .. '.jpg')
+        local aux = {}
+        aux[1] = image.scale(i0, size, size)
+        aux[2] = image.hflip(aux[1])
+        aux[3] = image.vflip(aux[1])
+        aux[4] = image.vflip(aux[2])
+        aux[5] = aux[1]:transpose(2,3)
+        aux[6] = aux[2]:transpose(2,3)
+        aux[7] = aux[3]:transpose(2,3)
+        aux[8] = aux[4]:transpose(2,3)
         local label1 = tonumber(dataset.label[k])
         local label2 = label1
 
@@ -52,38 +68,60 @@ local function LoadAndAugmentDataset(filename)
             label2 = 1
         end
 
-        ret.data[8 * k - 7] = i1
-        ret.label[8 * k - 7] = label1
+        for i = 1,8 do
+            ret.data[pos] = aux[i]
+            if i <= 4 then
+                ret.label[pos] = label1
+            else
+                ret.label[pos] = label2
+            end
+            pos = pos + 1
+        end
 
-        ret.data[8 * k - 6] = i2
-        ret.label[8 * k - 6] = label1
+        if label1 == 3 or label1 == 4 then
+            local h,w = i0:size(1),i0:size(2)
+            local aux2 = {}
 
-        ret.data[8 * k - 5] = i3
-        ret.label[8 * k - 5] = label1
+            if h > w then
+                aux2[1] = image.crop(i0, 'tl', math.ceil(2 * h / 3), w)
+            else
+                aux2[1] = image.crop(i0, 'tl', h, math.ceil(2 * w / 3))
+            end
 
-        ret.data[8 * k - 4] = i4
-        ret.label[8 * k - 4] = label1
+            aux2[1] = image.scale(aux2[1], size, size)
+            aux2[2] = image.hflip(aux2[1])
+            aux2[3] = image.vflip(aux2[1])
+            aux2[4] = image.vflip(aux2[2])
+            aux2[5] = aux2[1]:transpose(2,3)
+            aux2[6] = aux2[2]:transpose(2,3)
+            aux2[7] = aux2[3]:transpose(2,3)
+            aux2[8] = aux2[4]:transpose(2,3)
 
-        ret.data[8 * k - 3] = i1:transpose(2,3)
-        ret.label[8 * k - 3] = label2
-
-        ret.data[8 * k - 2] = i2:transpose(2,3)
-        ret.label[8 * k - 2] = label2
-
-        ret.data[8 * k - 1] = i3:transpose(2,3)
-        ret.label[8 * k - 1] = label2
-
-        ret.data[8 * k] = i4:transpose(2,3)
-        ret.label[8 * k] = label2
+            for i = 1,8 do
+                ret.data[pos] = aux2[i]
+                ret.label[pos] = label1
+                pos = pos + 1
+            end
+        end
     end
 
     print("Finished loading", filename)
+
+    cont = {0, 0, 0, 0}
+    for i = 1,pos - 1 do
+        local cur =  ret.label[i]
+        cont[cur] = cont[cur] + 1
+    end
+    print(cont)
+    assert(pos - 1 == nret)
+
     return ret
 end
 
 trainData = LoadAndAugmentDataset('id_train.csv')
 local ntrain = trainData.data:size(1)
 trainData.Id = nil
+
 testData = LoadDataset('sample_submission4.csv')
 local ntest = testData.data:size(1)
 testData.label = nil
